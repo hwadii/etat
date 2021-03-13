@@ -1,6 +1,6 @@
 [package]
 name = "etat"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Wadii Hajji <wadii@cardiologs.com>"]
 edition = "2018"
 
@@ -10,3 +10,4 @@ edition = "2018"
 chrono = { version = "0.4", features = ["unstable-locales"] }
 cmd_lib = "0.12.0"
 battery = "0.7.8"
+mpris = "1.1.2"

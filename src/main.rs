@@ -4,7 +4,27 @@ use cmd_lib::run_fun;
 use std::error::Error;
 
 fn main() -> Result<(), Box<dyn Error>> {
-    let song = run_fun!(get_song)?;
+    let player = mpris::PlayerFinder::new()
+        .expect("Could not connect to D-Bus")
+        .find_active();
+    let thing_playing = match player {
+        Ok(player) => {
+            let status = player.get_playback_status();
+            let metadata = player.get_metadata().unwrap();
+            let song = format!(
+                "{} — {}",
+                metadata.artists().unwrap().get(0).unwrap(),
+                metadata.title().unwrap()
+            );
+            match status {
+                Ok(mpris::PlaybackStatus::Paused) | Ok(mpris::PlaybackStatus::Stopped) => {
+                    format!("({:?}) {}", status.unwrap(), song)
+                }
+                _ => song,
+            }
+        }
+        _ => String::from("No player found"),
+    };
     let now = Local::now().format_localized("%a %d %b %H:%M %p", Locale::fr_FR);
     let bats = battery::Manager::new()?
         .batteries()?
@@ -25,7 +45,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     println!(
         "{} • ♪ {} • {} {}% {}% • {}",
-        song,
+        thing_playing,
         vol_level,
         bat_two.0,
         bat_two.1.value.round(),
