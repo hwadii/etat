@@ -2,10 +2,14 @@ use chrono::prelude::Locale;
 use chrono::Local;
 use cmd_lib::run_fun;
 use std::error::Error;
+use std::process;
 
 fn main() -> Result<(), Box<dyn Error>> {
     let player = mpris::PlayerFinder::new()
-        .expect("Could not connect to D-Bus")
+        .unwrap_or_else(|_| {
+            eprintln!("Could not get Dbus connection");
+            process::exit(1);
+        })
         .find_active();
     let thing_playing = match player {
         Ok(player) => {
@@ -23,7 +27,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 _ => song,
             }
         }
-        _ => String::from("No player found"),
+        _ => "No players found".to_owned(),
     };
     let now = Local::now().format_localized("%a %d %b %H:%M %p", Locale::fr_FR);
     let bats = battery::Manager::new()?
