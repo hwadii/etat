@@ -35,8 +35,17 @@ fn main() -> Result<(), Box<dyn Error>> {
         .map(|bat| bat.unwrap())
         .map(|bat| (bat.state(), bat.state_of_charge() * 100f32))
         .collect::<Vec<(battery::State, battery::units::Ratio)>>();
-    let bat_one = &bats[0];
-    let bat_two = &bats[1];
+    let mut bat_state = String::from("");
+    if bats.len() == 2 {
+        let bat_one = &bats[0];
+        let bat_two = &bats[1];
+        bat_state = format!(
+            "{} {}% {}%",
+            bat_two.0,
+            bat_two.1.value.round(),
+            bat_one.1.value.round()
+        );
+    }
     let amixer_out = run_fun!(amixer -D pulse sget Master)?;
     let vol = amixer_out
         .lines()
@@ -46,15 +55,23 @@ fn main() -> Result<(), Box<dyn Error>> {
         .filter(|x| x.starts_with("["))
         .collect::<Vec<&str>>();
     let vol_level = vol[0].replace(|c| c == '[' || c == ']', "");
-
-    println!(
-        "{} • ♪ {} • {} {}% {}% • {}",
+    let components = vec![
         thing_playing,
-        vol_level,
-        bat_two.0,
-        bat_two.1.value.round(),
-        bat_one.1.value.round(),
-        now
-    );
+        String::from("♪ ") + &vol_level,
+        bat_state,
+        now.to_string(),
+    ];
+
+    println!("{}", make_status(&components));
     Ok(())
+}
+
+fn make_status<S: AsRef<str>>(components: &Vec<S>) -> String {
+    let separator = " • ";
+    components
+        .iter()
+        .map(|c| c.as_ref())
+        .filter(|c| !c.is_empty())
+        .collect::<Vec<&str>>()
+        .join(separator)
 }

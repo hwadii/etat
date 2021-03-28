@@ -192,7 +192,7 @@ checksum = "d9435d864e017c3c6afeac1654189b06cdb491cf2ff73dbf0d73b0f292f42ff8"
 
 [[package]]
 name = "etat"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "battery",
  "chrono",
