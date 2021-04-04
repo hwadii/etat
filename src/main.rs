@@ -5,29 +5,14 @@ use std::error::Error;
 use std::process;
 
 fn main() -> Result<(), Box<dyn Error>> {
-    let player = mpris::PlayerFinder::new()
-        .unwrap_or_else(|_| {
-            eprintln!("Could not get Dbus connection");
-            process::exit(1);
-        })
-        .find_active();
-    let thing_playing = match player {
-        Ok(player) => {
-            let status = player.get_playback_status();
-            let metadata = player.get_metadata().unwrap();
-            let song = format!(
-                "{} — {}",
-                metadata.artists().unwrap().get(0).unwrap(),
-                metadata.title().unwrap()
-            );
-            match status {
-                Ok(mpris::PlaybackStatus::Paused) | Ok(mpris::PlaybackStatus::Stopped) => {
-                    format!("({:?}) {}", status.unwrap(), song)
-                }
-                _ => song,
-            }
-        }
-        _ => "No players found".to_owned(),
+    let player = mpris::PlayerFinder::new().unwrap_or_else(|_| {
+        eprintln!("Could not get Dbus connection");
+        process::exit(1);
+    });
+    let thing_playing = if let Ok(p) = player.find_active() {
+        parse_player(&p)
+    } else {
+        "No players found".to_owned()
     };
     let now = Local::now().format_localized("%a %d %b %H:%M %p", Locale::fr_FR);
     let bats = battery::Manager::new()?
@@ -74,4 +59,26 @@ fn make_status<S: AsRef<str>>(components: &Vec<S>) -> String {
         .filter(|c| !c.is_empty())
         .collect::<Vec<&str>>()
         .join(separator)
+}
+
+fn parse_player(player: &mpris::Player) -> String {
+    let status = player.get_playback_status();
+    let metadata = player.get_metadata().unwrap();
+    let artist = if let Some(artists) = metadata.artists() {
+        artists.get(0).unwrap()
+    } else {
+        ""
+    };
+    let title = metadata.title().unwrap_or_default();
+    let song = if artist.is_empty() && title.is_empty() {
+        "Something is playing...".to_owned()
+    } else {
+        format!("{} — {}", artist, title)
+    };
+    match status {
+        Ok(mpris::PlaybackStatus::Paused) | Ok(mpris::PlaybackStatus::Stopped) => {
+            format!("({:?}) {}", status.unwrap(), song)
+        }
+        _ => song,
+    }
 }
