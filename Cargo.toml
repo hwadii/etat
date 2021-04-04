@@ -1,6 +1,6 @@
 [package]
 name = "etat"
-version = "0.1.2"
+version = "0.1.3"
 authors = ["Wadii Hajji <wadii@cardiologs.com>"]
 edition = "2018"
 
