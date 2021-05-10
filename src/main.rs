@@ -31,7 +31,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             bat_one.1.value.round()
         );
     }
-    let amixer_out = run_fun!(amixer -D pulse sget Master)?;
+    let amixer_out = run_fun!(amixer)?;
     let vol = amixer_out
         .lines()
         .last()
