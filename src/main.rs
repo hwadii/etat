@@ -1,10 +1,21 @@
+use std::thread::sleep;
+use std::time::Duration;
 use chrono::prelude::Locale;
 use chrono::Local;
 use cmd_lib::run_fun;
 use std::error::Error;
 use std::process;
 
+const ONE_SECOND: Duration = Duration::from_secs(1);
+
 fn main() -> Result<(), Box<dyn Error>> {
+    loop {
+        run()?;
+        sleep(ONE_SECOND);
+    }
+}
+
+fn run() -> Result<(), Box<dyn Error>> {
     let player = mpris::PlayerFinder::new().unwrap_or_else(|_| {
         eprintln!("Could not get Dbus connection");
         process::exit(1);
