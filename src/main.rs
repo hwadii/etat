@@ -42,15 +42,18 @@ fn run() -> Result<(), Box<dyn Error>> {
             bat_one.1.value.round()
         );
     }
-    let amixer_out = run_fun!(amixer)?;
-    let vol = amixer_out
+    let pactl_out = run_fun!(pactl list sinks)?;
+    let vol_line = pactl_out
         .lines()
-        .last()
+        .filter(|line| line.contains("Volume"))
+        .collect::<Vec<&str>>();
+    let vol = vol_line
+        .first()
         .unwrap()
         .split_whitespace()
-        .filter(|x| x.starts_with("["))
+        .filter(|x| x.ends_with("%"))
         .collect::<Vec<&str>>();
-    let vol_level = vol[0].replace(|c| c == '[' || c == ']', "");
+    let vol_level = vol.first().unwrap();
     let components = vec![
         thing_playing,
         String::from("♪ ") + &vol_level,
